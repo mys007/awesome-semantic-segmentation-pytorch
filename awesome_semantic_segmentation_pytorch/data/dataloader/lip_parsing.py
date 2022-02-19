@@ -4,7 +4,7 @@ import torch
 import numpy as np
 
 from PIL import Image
-from core.data.dataloader.segbase import SegmentationDataset
+from awesome_semantic_segmentation_pytorch.data.dataloader.segbase import SegmentationDataset
 
 
 class LIPSegmentation(SegmentationDataset):

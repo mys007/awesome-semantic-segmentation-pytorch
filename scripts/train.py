@@ -15,13 +15,13 @@ import torch.utils.data as data
 import torch.backends.cudnn as cudnn
 
 from torchvision import transforms
-from core.data.dataloader import get_segmentation_dataset
-from core.models.model_zoo import get_segmentation_model
-from core.utils.loss import get_segmentation_loss
-from core.utils.distributed import *
-from core.utils.logger import setup_logger
-from core.utils.lr_scheduler import WarmupPolyLR
-from core.utils.score import SegmentationMetric
+from awesome_semantic_segmentation_pytorch.data.dataloader import get_segmentation_dataset
+from awesome_semantic_segmentation_pytorch.models.model_zoo import get_segmentation_model
+from awesome_semantic_segmentation_pytorchome_semantic_segmentation_pytorch.utils.loss import get_segmentation_loss
+from awesome_semantic_segmentation_pytorchome_semantic_segmentation_pytorch.utils.distributed import *
+from awesome_semantic_segmentation_pytorch.utils.logger import setup_logger
+from awesome_semantic_segmentation_pytorch.utils.lr_scheduler import WarmupPolyLR
+from awesome_semantic_segmentation_pytorch.utils.score import SegmentationMetric
 
 
 def parse_args():

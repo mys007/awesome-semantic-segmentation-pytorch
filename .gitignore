@@ -136,7 +136,7 @@ AwsmSemSegPytorch-env/
 
 
 # builded files
-core/nn/sync_bn/lib/gpu/build.ninja
-core/nn/sync_bn/lib/gpu/.ninja_log
-core/nn/sync_bn/lib/gpu/.ninja_deps
+awesome_semantic_segmentation_pytorch/nn/sync_bn/lib/gpu/build.ninja
+awesome_semantic_segmentation_pytorch/nn/sync_bn/lib/gpu/.ninja_log
+awesome_semantic_segmentation_pytorch/nn/sync_bn/lib/gpu/.ninja_deps
 

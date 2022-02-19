@@ -91,7 +91,7 @@ Model与Backbone的支持详情可见[这里](https://github.com/Tramac/awesome-
 
 ```
 .{SEG_ROOT}
-├── core
+├── awesome_semantic_segmentation_pytorch
 │   ├── models
 │   │   ├── bisenet.py
 │   │   ├── danet.py
@@ -116,7 +116,7 @@ Model与Backbone的支持详情可见[这里](https://github.com/Tramac/awesome-
 ### 数据集
 可以选择以下方式下载指定数据集，比如：
 ```
-cd ./core/data/downloader
+cd ./awesome_semantic_segmentation_pytorch/data/downloader
 python ade20k.py --download-dir ../datasets/ade
 ```
 
@@ -132,7 +132,7 @@ python ade20k.py --download-dir ../datasets/ade
 
 ```
 .{SEG_ROOT}
-├── core
+├── awesome_semantic_segmentation_pytorch
 │   ├── data
 │   │   ├── dataloader
 │   │   │   ├── ade.py

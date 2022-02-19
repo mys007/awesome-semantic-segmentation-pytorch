@@ -13,12 +13,12 @@ import torch.utils.data as data
 import torch.backends.cudnn as cudnn
 
 from torchvision import transforms
-from core.data.dataloader import get_segmentation_dataset
-from core.models.model_zoo import get_segmentation_model
-from core.utils.score import SegmentationMetric
-from core.utils.visualize import get_color_pallete
-from core.utils.logger import setup_logger
-from core.utils.distributed import synchronize, get_rank, make_data_sampler, make_batch_data_sampler
+from awesome_semantic_segmentation_pytorch.data.dataloader import get_segmentation_dataset
+from awesome_semantic_segmentation_pytorch.models.model_zoo import get_segmentation_model
+from awesome_semantic_segmentation_pytorch.utils.score import SegmentationMetric
+from awesome_semantic_segmentation_pytorch.utils.visualize import get_color_pallete
+from awesome_semantic_segmentation_pytorch.utils.logger import setup_logger
+from awesome_semantic_segmentation_pytorch.utils.distributed import synchronize, get_rank, make_data_sampler, make_batch_data_sampler
 
 from train import parse_args
 

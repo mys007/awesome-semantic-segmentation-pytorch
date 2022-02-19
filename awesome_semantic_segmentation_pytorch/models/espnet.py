@@ -3,8 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from core.models.base_models import eespnet, EESP
-from core.nn import _ConvBNPReLU, _BNPReLU
+from awesome_semantic_segmentation_pytorch.models.base_models import eespnet, EESP
+from awesome_semantic_segmentation_pytorch.nn import _ConvBNPReLU, _BNPReLU
 
 
 class ESPNetV2(nn.Module):
@@ -99,7 +99,7 @@ def get_espnet(dataset='pascal_voc', backbone='', pretrained=False, root='~/.tor
         'coco': 'coco',
         'citys': 'citys',
     }
-    from core.data.dataloader import datasets
+    from awesome_semantic_segmentation_pytorch.data.dataloader import datasets
     model = ESPNetV2(datasets[dataset].NUM_CLASS, backbone=backbone, pretrained_base=pretrained_base, **kwargs)
     if pretrained:
         from .model_store import get_model_file

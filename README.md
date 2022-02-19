@@ -97,7 +97,7 @@ python demo.py --model fcn32s_vgg16_voc --input-pic ../datasets/test.jpg
 [DETAILS](https://github.com/Tramac/awesome-semantic-segmentation-pytorch/blob/master/docs/DETAILS.md) for model & backbone.
 ```
 .{SEG_ROOT}
-├── core
+├── awesome_semantic_segmentation_pytorch
 │   ├── models
 │   │   ├── bisenet.py
 │   │   ├── danet.py
@@ -124,7 +124,7 @@ python demo.py --model fcn32s_vgg16_voc --input-pic ../datasets/test.jpg
 You can run script to download dataset, such as:
 
 ```
-cd ./core/data/downloader
+cd ./awesome_semantic_segmentation_pytorch/data/downloader
 python ade20k.py --download-dir ../datasets/ade
 ```
 
@@ -140,7 +140,7 @@ python ade20k.py --download-dir ../datasets/ade
 
 ```
 .{SEG_ROOT}
-├── core
+├── awesome_semantic_segmentation_pytorch
 │   ├── data
 │   │   ├── dataloader
 │   │   │   ├── ade.py

@@ -54,7 +54,7 @@ class FCN16s(nn.Module):
         self.pool4 = nn.Sequential(*self.pretrained[:24])
         self.pool5 = nn.Sequential(*self.pretrained[24:])
         self.head = _FCNHead(512, nclass, norm_layer)
-        self.score_pool4 = nn.Conv2d(512, nclass, 1)
+        self.sawesome_semantic_segmentation_pytorch_pool4 = nn.Conv2d(512, nclass, 1)
         if aux:
             self.auxlayer = _FCNHead(512, nclass, norm_layer)
 
