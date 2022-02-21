@@ -17,8 +17,9 @@ from .cgnet import *
 from .espnet import *
 from .lednet import *
 from .dfanet import *
+from .fast_scnn import *
 
-__all__ = ['get_model', 'get_model_list', 'get_segmentation_model']
+__all__ = ['get_model', 'get_model_list', 'get_segmentation_model', 'get_segmentation_model_class']
 
 _models = {
     'fcn32s_vgg16_voc': get_fcn32s_vgg16_voc,
@@ -112,3 +113,29 @@ def get_segmentation_model(model, **kwargs):
         'dfanet': get_dfanet,
     }
     return models[model](**kwargs)
+
+def get_segmentation_model_class(model):
+    models = {
+        #'fcn32s': FCN32s,
+        #'fcn16s': FCN16s,
+        #'fcn8s': FCN8s,
+        'fcn': FCN,
+        'psp': PSPNet,
+        'deeplabv3': DeepLabV3,
+        'deeplabv3_plus': DeepLabV3Plus,
+        'danet': DANet,
+        'denseaspp': DenseASPP,
+        'bisenet': BiSeNet,
+        'encnet': EncNet,
+        'dunet': DUNet,
+        'icnet': ICNet,
+        'enet': ENet,
+        'ocnet': OCNet,
+        'psanet': PSANet,
+        'cgnet': CGNet,
+        'espnet': ESPNetV2,
+        'lednet': LEDNet,
+        'dfanet': DFANet,
+        'fastscnn': FastSCNN
+    }
+    return models[model]

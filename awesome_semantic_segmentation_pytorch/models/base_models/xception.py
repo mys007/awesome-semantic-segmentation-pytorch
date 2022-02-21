@@ -356,8 +356,8 @@ class XceptionA(nn.Module):
     def __init__(self, num_classes=1000, norm_layer=nn.BatchNorm2d):
         super(XceptionA, self).__init__()
         self.conv1 = nn.Sequential(nn.Conv2d(3, 8, 3, 2, 1, bias=False),
-                                   norm_layer(8),
-                                   nn.ReLU(True))
+                                   norm_layer(8))#,
+                                   #nn.ReLU(True)) # otherwise 2x after each other and crashes backprop
 
         self.enc2 = Enc(8, 48, 4, norm_layer=norm_layer)
         self.enc3 = Enc(48, 96, 6, norm_layer=norm_layer)

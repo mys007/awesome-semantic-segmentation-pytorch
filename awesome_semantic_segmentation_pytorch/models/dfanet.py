@@ -12,6 +12,8 @@ __all__ = ['DFANet', 'get_dfanet', 'get_dfanet_citys']
 class DFANet(nn.Module):
     def __init__(self, nclass, backbone='', aux=False, jpu=False, pretrained_base=False, **kwargs):
         super(DFANet, self).__init__()
+        if 'norm_layer' not in kwargs:
+            kwargs['norm_layer'] = nn.BatchNorm2d
         self.pretrained = get_xception_a(pretrained_base, **kwargs)
 
         self.enc2_2 = Enc(240, 48, 4, **kwargs)
