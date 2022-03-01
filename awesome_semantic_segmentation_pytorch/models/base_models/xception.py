@@ -353,7 +353,7 @@ class FCAttention(nn.Module):
 
 
 class XceptionA(nn.Module):
-    def __init__(self, num_classes=1000, norm_layer=nn.BatchNorm2d):
+    def __init__(self, num_classes=1000, norm_layer=nn.BatchNorm2d, **kwargs):
         super(XceptionA, self).__init__()
         self.conv1 = nn.Sequential(nn.Conv2d(3, 8, 3, 2, 1, bias=False),
                                    norm_layer(8))#,

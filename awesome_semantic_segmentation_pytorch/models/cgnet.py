@@ -26,7 +26,7 @@ class CGNet(nn.Module):
         arXiv preprint arXiv:1811.08201 (2018).
     """
 
-    def __init__(self, nclass, backbone='', aux=False, jpu=False, pretrained_base=True, M=3, N=21, **kwargs):
+    def __init__(self, nclass, backbone='', aux=False, jpu=False, pretrained_base=True, pixel_shuffle=False, M=3, N=21, **kwargs):
         super(CGNet, self).__init__()
         # stage 1
         self.stage1_0 = _ConvBNPReLU(3, 32, 3, 2, 1, **kwargs)
@@ -51,9 +51,17 @@ class CGNet(nn.Module):
             self.stage3.append(ContextGuidedBlock(128, 128, dilation=4, reduction=16, **kwargs))
         self.bn_prelu3 = _BNPReLU(256, **kwargs)
 
-        self.head = nn.Sequential(
-            nn.Dropout2d(0.1, False),
-            nn.Conv2d(256, nclass, 1))
+        self.pixel_shuffle = pixel_shuffle
+        if pixel_shuffle:
+            self.head = nn.Sequential(
+                nn.Dropout2d(0.1, False),
+                nn.Conv2d(256, nclass * 8 * 8, 1),
+                nn.PixelShuffle(8)
+            )
+        else:
+            self.head = nn.Sequential(
+                nn.Dropout2d(0.1, False),
+                nn.Conv2d(256, nclass, 1))
 
         self.__setattr__('exclusive', ['stage1_0', 'stage1_1', 'stage1_2', 'sample1', 'sample2',
                                        'bn_prelu1', 'stage2_0', 'stage2', 'bn_prelu2', 'stage3_0',
@@ -90,7 +98,8 @@ class CGNet(nn.Module):
 
         outputs = []
         out = self.head(out2_cat)
-        out = F.interpolate(out, size, mode='bilinear', align_corners=True)
+        if not self.pixel_shuffle:
+            out = F.interpolate(out, size, mode='bilinear', align_corners=True)
         outputs.append(out)
         return tuple(outputs)
 

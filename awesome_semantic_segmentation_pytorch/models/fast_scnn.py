@@ -16,13 +16,14 @@ __all__ = ['FastSCNN', 'get_fast_scnn']
 
 
 class FastSCNN(nn.Module):
-    def __init__(self, nclass, aux=False, **kwargs):
+    def __init__(self, nclass, aux=False, pixel_shuffle=False, **kwargs):
         super(FastSCNN, self).__init__()
         self.aux = aux
+        self.pixel_shuffle = pixel_shuffle
         self.learning_to_downsample = LearningToDownsample(32, 48, 64)
         self.global_feature_extractor = GlobalFeatureExtractor(64, [64, 96, 128], 128, 6, [3, 3, 3])
         self.feature_fusion = FeatureFusionModule(64, 128, 128)
-        self.classifier = Classifer(128, nclass)
+        self.classifier = Classifer(128, nclass, up_factor=8 if pixel_shuffle else None)
         if self.aux:
             self.auxlayer = nn.Sequential(
                 nn.Conv2d(64, 32, 3, padding=1, bias=False),
@@ -39,7 +40,8 @@ class FastSCNN(nn.Module):
         x = self.feature_fusion(higher_res_features, x)
         x = self.classifier(x)
         outputs = []
-        x = F.interpolate(x, size, mode='bilinear', align_corners=True)
+        if not self.pixel_shuffle:
+            x = F.interpolate(x, size, mode='bilinear', align_corners=True)
         outputs.append(x)
         if self.aux:
             auxout = self.auxlayer(higher_res_features)
@@ -219,14 +221,22 @@ class FeatureFusionModule(nn.Module):
 class Classifer(nn.Module):
     """Classifer"""
 
-    def __init__(self, dw_channels, num_classes, stride=1, **kwargs):
+    def __init__(self, dw_channels, num_classes, stride=1, up_factor=0, **kwargs):
         super(Classifer, self).__init__()
         self.dsconv1 = _DSConv(dw_channels, dw_channels, stride)
         self.dsconv2 = _DSConv(dw_channels, dw_channels, stride)
-        self.conv = nn.Sequential(
-            nn.Dropout(0.1),
-            nn.Conv2d(dw_channels, num_classes, 1)
-        )
+
+        if up_factor:
+            self.conv = nn.Sequential(
+                nn.Dropout(0.1),
+                nn.Conv2d(dw_channels, num_classes * up_factor * up_factor, 1),
+                nn.PixelShuffle(up_factor)
+            )
+        else:
+            self.conv = nn.Sequential(
+                nn.Dropout(0.1),
+                nn.Conv2d(dw_channels, num_classes, 1)
+            )
 
     def forward(self, x):
         x = self.dsconv1(x)

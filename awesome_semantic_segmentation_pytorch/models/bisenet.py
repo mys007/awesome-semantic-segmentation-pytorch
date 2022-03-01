@@ -10,13 +10,14 @@ __all__ = ['BiSeNet', 'get_bisenet', 'get_bisenet_resnet18_citys']
 
 
 class BiSeNet(nn.Module):
-    def __init__(self, nclass, backbone='resnet18', aux=False, jpu=False, pretrained_base=True, **kwargs):
+    def __init__(self, nclass, backbone='resnet18', aux=False, jpu=False, pretrained_base=True, pixel_shuffle=False, **kwargs):
         super(BiSeNet, self).__init__()
         self.aux = aux
+        self.pixel_shuffle = pixel_shuffle
         self.spatial_path = SpatialPath(3, 128, **kwargs)
         self.context_path = ContextPath(backbone, pretrained_base, **kwargs)
         self.ffm = FeatureFusion(256, 256, 4, **kwargs)
-        self.head = _BiSeHead(256, 64, nclass, **kwargs)
+        self.head = _BiSeHead(256, 64, nclass, pixel_shuffle=pixel_shuffle, **kwargs)
         if aux:
             self.auxlayer1 = _BiSeHead(128, 256, nclass, **kwargs)
             self.auxlayer2 = _BiSeHead(128, 256, nclass, **kwargs)
@@ -32,7 +33,8 @@ class BiSeNet(nn.Module):
         fusion_out = self.ffm(spatial_out, context_out[-1])
         outputs = []
         x = self.head(fusion_out)
-        x = F.interpolate(x, size, mode='bilinear', align_corners=True)
+        if not self.pixel_shuffle:
+            x = F.interpolate(x, size, mode='bilinear', align_corners=True)
         outputs.append(x)
 
         if self.aux:
@@ -46,13 +48,22 @@ class BiSeNet(nn.Module):
 
 
 class _BiSeHead(nn.Module):
-    def __init__(self, in_channels, inter_channels, nclass, norm_layer=nn.BatchNorm2d, **kwargs):
+    def __init__(self, in_channels, inter_channels, nclass, norm_layer=nn.BatchNorm2d, pixel_shuffle=False,**kwargs):
         super(_BiSeHead, self).__init__()
-        self.block = nn.Sequential(
-            _ConvBNReLU(in_channels, inter_channels, 3, 1, 1, norm_layer=norm_layer),
-            nn.Dropout(0.1),
-            nn.Conv2d(inter_channels, nclass, 1)
-        )
+        if pixel_shuffle:
+            up_factor = 8
+            self.block = nn.Sequential(
+                _ConvBNReLU(in_channels, inter_channels, 3, 1, 1, norm_layer=norm_layer),
+                nn.Dropout(0.1),
+                nn.Conv2d(inter_channels, nclass * up_factor * up_factor, 1),
+                nn.PixelShuffle(up_factor)
+            )
+        else:
+            self.block = nn.Sequential(
+                _ConvBNReLU(in_channels, inter_channels, 3, 1, 1, norm_layer=norm_layer),
+                nn.Dropout(0.1),
+                nn.Conv2d(inter_channels, nclass, 1)
+            )
 
     def forward(self, x):
         x = self.block(x)
