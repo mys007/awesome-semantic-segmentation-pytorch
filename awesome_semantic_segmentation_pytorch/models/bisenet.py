@@ -53,11 +53,10 @@ class _BiSeHead(nn.Module):
         if pixel_shuffle:
             up_factor = 8
             self.block = nn.Sequential(
-                _ConvBNReLU(in_channels, inter_channels, 3, 1, 1, norm_layer=norm_layer),
                 nn.Dropout(0.1),
-                nn.Conv2d(inter_channels, nclass * up_factor * up_factor, 1),
+                nn.Conv2d(in_channels, nclass * up_factor * up_factor, 3, 1, 1),
                 nn.PixelShuffle(up_factor)
-            )
+            )            
         else:
             self.block = nn.Sequential(
                 _ConvBNReLU(in_channels, inter_channels, 3, 1, 1, norm_layer=norm_layer),

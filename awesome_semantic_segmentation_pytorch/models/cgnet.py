@@ -26,7 +26,7 @@ class CGNet(nn.Module):
         arXiv preprint arXiv:1811.08201 (2018).
     """
 
-    def __init__(self, nclass, backbone='', aux=False, jpu=False, pretrained_base=True, pixel_shuffle=False, M=3, N=21, **kwargs):
+    def __init__(self, nclass, backbone='', aux=False, jpu=False, pretrained_base=True, pixel_shuffle=False, M=3, N=21, gap_base_input_size=0, **kwargs):
         super(CGNet, self).__init__()
         # stage 1
         self.stage1_0 = _ConvBNPReLU(3, 32, 3, 2, 1, **kwargs)
@@ -38,24 +38,24 @@ class CGNet(nn.Module):
         self.bn_prelu1 = _BNPReLU(32 + 3, **kwargs)
 
         # stage 2
-        self.stage2_0 = ContextGuidedBlock(32 + 3, 64, dilation=2, reduction=8, down=True, residual=False, **kwargs)
+        self.stage2_0 = ContextGuidedBlock(32 + 3, 64, dilation=2, reduction=8, down=True, residual=False, fc_glo_in_size=gap_base_input_size//4, **kwargs)
         self.stage2 = nn.ModuleList()
         for i in range(0, M - 1):
-            self.stage2.append(ContextGuidedBlock(64, 64, dilation=2, reduction=8, **kwargs))
+            self.stage2.append(ContextGuidedBlock(64, 64, dilation=2, reduction=8, fc_glo_in_size=gap_base_input_size//4, **kwargs))
         self.bn_prelu2 = _BNPReLU(128 + 3, **kwargs)
 
         # stage 3
-        self.stage3_0 = ContextGuidedBlock(128 + 3, 128, dilation=4, reduction=16, down=True, residual=False, **kwargs)
+        self.stage3_0 = ContextGuidedBlock(128 + 3, 128, dilation=4, reduction=16, down=True, residual=False, fc_glo_in_size=gap_base_input_size//8, **kwargs)
         self.stage3 = nn.ModuleList()
         for i in range(0, N - 1):
-            self.stage3.append(ContextGuidedBlock(128, 128, dilation=4, reduction=16, **kwargs))
+            self.stage3.append(ContextGuidedBlock(128, 128, dilation=4, reduction=16, fc_glo_in_size=gap_base_input_size//8, **kwargs))
         self.bn_prelu3 = _BNPReLU(256, **kwargs)
 
         self.pixel_shuffle = pixel_shuffle
         if pixel_shuffle:
             self.head = nn.Sequential(
                 nn.Dropout2d(0.1, False),
-                nn.Conv2d(256, nclass * 8 * 8, 1),
+                nn.Conv2d(256, nclass * 8 * 8, 3, 1, 1),
                 nn.PixelShuffle(8)
             )
         else:
@@ -131,6 +131,24 @@ class _FGlo(nn.Module):
         return x * out
 
 
+class _FGloFullyConvolutional(nn.Module):
+    def __init__(self, in_channels, reduction=16, in_size=0, **kwargs):
+        super(_FGloFullyConvolutional, self).__init__()
+        self.in_size = in_size
+        self.gap = nn.AvgPool2d(in_size)
+        self.fc = nn.Sequential(
+            nn.Conv2d(in_channels, in_channels // reduction, 1, 1, 0),
+            nn.ReLU(True),
+            nn.Conv2d(in_channels // reduction, in_channels, 1, 1, 0),
+            nn.Sigmoid())
+
+    def forward(self, x):
+        out = self.gap(x)
+        out = self.fc(out)  
+        out = F.interpolate(out, scale_factor=self.in_size, mode='bilinear', align_corners=False)
+        return x * out
+
+
 class _InputInjection(nn.Module):
     def __init__(self, ratio):
         super(_InputInjection, self).__init__()
@@ -159,7 +177,7 @@ class _ConcatInjection(nn.Module):
 
 class ContextGuidedBlock(nn.Module):
     def __init__(self, in_channels, out_channels, dilation=2, reduction=16, down=False,
-                 residual=True, norm_layer=nn.BatchNorm2d, **kwargs):
+                 residual=True, norm_layer=nn.BatchNorm2d, fc_glo_in_size=0, **kwargs):
         super(ContextGuidedBlock, self).__init__()
         inter_channels = out_channels // 2 if not down else out_channels
         if down:
@@ -171,7 +189,10 @@ class ContextGuidedBlock(nn.Module):
         self.f_sur = _ChannelWiseConv(inter_channels, inter_channels, dilation, **kwargs)
         self.bn = norm_layer(inter_channels * 2)
         self.prelu = nn.PReLU(inter_channels * 2)
-        self.f_glo = _FGlo(out_channels, reduction, **kwargs)
+        if fc_glo_in_size > 0:
+            self.f_glo = _FGloFullyConvolutional(out_channels, reduction, in_size=fc_glo_in_size, **kwargs)
+        else:
+            self.f_glo = _FGlo(out_channels, reduction, **kwargs)
         self.down = down
         self.residual = residual
 
